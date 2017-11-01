@@ -821,26 +821,30 @@ def save_subsection_as_html(subsection):
     url = urllib2.urlopen(subsection.url)
     sourceHtml = url.read()
     continueToReplace = 1
+    i = 0
     while continueToReplace:
-        i = 0
         seq0_selector = "<div id=\"seq_contents_"+str(i)+"\""
         pos_seq0 = sourceHtml.find(seq0_selector)
 
         seq1_selector = "<div id=\"seq_contents_"+str(i+1)+"\""
         pos_seq1 = sourceHtml.find(seq1_selector)
+        sourceHtmlForIteration = sourceHtml
 
-        if pos_seq0 > -1 and pos_seq1 > -1:
-            sourceHtml = sourceHtml[:pos_seq1]
-            sourceHtml = sourceHtml[pos_seq0:]
-            sourceHtml = sourceHtml.replace("&lt;", "<")
-            sourceHtml = sourceHtml.replace("&gt;", ">")
-            sourceHtml = sourceHtml.replace("&#34;", "\"")
-            outputFilename = "test555_"+str(i)+".html"
-            resultFile = open(outputFilename, "w+b")
-            resultFile.write(sourceHtml)
-            resultFile.close()
-            i = i + 1
-        else:
+        if pos_seq1 > -1:
+            sourceHtmlForIteration = sourceHtmlForIteration[:pos_seq1]
+        if pos_seq0 > -1:
+            sourceHtmlForIteration = sourceHtmlForIteration[pos_seq0:]
+
+        sourceHtmlForIteration = sourceHtmlForIteration.replace("&lt;", "<")
+        sourceHtmlForIteration = sourceHtmlForIteration.replace("&gt;", ">")
+        sourceHtmlForIteration = sourceHtmlForIteration.replace("&#34;", "\"")
+        outputFilename = "test555_"+str(i)+".html"
+        resultFile = open(outputFilename, "w+b")
+        resultFile.write(sourceHtmlForIteration)
+        resultFile.close()
+        i = i + 1
+
+        if pos_seq1 == -1 or pos_seq0 == -1:
             continueToReplace = 0
 
 def download(args, selections, all_units, headers):
