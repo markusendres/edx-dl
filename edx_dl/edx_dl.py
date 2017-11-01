@@ -15,8 +15,11 @@ import pickle
 import re
 import sys
 
+import urllib2
+
 from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
+from xhtml2pdf import pisa
 
 from six.moves.http_cookiejar import CookieJar
 from six.moves.urllib.error import HTTPError, URLError
@@ -812,6 +815,34 @@ def download_unit(unit, args, target_dir, filename_prefix, headers):
     skip_or_download(res_downloads, headers, args)
 
 
+
+
+def save_subsection_as_html(subsection):
+    url = urllib2.urlopen(subsection.url)
+    sourceHtml = url.read()
+    continueToReplace = 1
+    while continueToReplace:
+        i = 0
+        seq0_selector = "<div id=\"seq_contents_"+str(i)+"\""
+        pos_seq0 = sourceHtml.find(seq0_selector)
+
+        seq1_selector = "<div id=\"seq_contents_"+str(i+1)+"\""
+        pos_seq1 = sourceHtml.find(seq1_selector)
+
+        if pos_seq0 > -1 and pos_seq1 > -1:
+            sourceHtml = sourceHtml[:pos_seq1]
+            sourceHtml = sourceHtml[pos_seq0:]
+            sourceHtml = sourceHtml.replace("&lt;", "<")
+            sourceHtml = sourceHtml.replace("&gt;", ">")
+            sourceHtml = sourceHtml.replace("&#34;", "\"")
+            outputFilename = "test555_"+str(i)+".html"
+            resultFile = open(outputFilename, "w+b")
+            resultFile.write(sourceHtml)
+            resultFile.close()
+            i = i + 1
+        else:
+            continueToReplace = 0
+
 def download(args, selections, all_units, headers):
     """
     Downloads all the resources based on the selections
@@ -832,6 +863,7 @@ def download(args, selections, all_units, headers):
             mkdir_p(target_dir)
             counter = 0
             for subsection in selected_section.subsections:
+                save_subsection_as_html(subsection)
                 units = all_units.get(subsection.url, [])
                 for unit in units:
                     counter += 1
